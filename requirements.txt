@@ -19,7 +19,7 @@ httplib2==0.31.2
 idna==3.11
 oauthlib==3.3.1
 proto-plus==1.27.2
-protobuf==6.33.6
+protobuf>=4.25.8,<6.0.0
 pyasn1==0.6.3
 pyasn1_modules==0.4.2
 pycparser==2.23
