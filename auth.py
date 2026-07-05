@@ -23,6 +23,8 @@ def get_creds():
         os.environ.get("RENDER")
         or os.environ.get("RAILWAY_ENVIRONMENT")
         or os.environ.get("IS_DEPLOYED")
+        or os.environ.get("STREAMLIT_SERVER_PORT")
+        or os.environ.get("STREAMLIT_SERVER_HEADLESS")
     )
 
     # If cached credentials exist but are expired, refresh them directly
@@ -65,4 +67,4 @@ def get_creds():
                 token.write(creds.to_json())
                 
     _cached_creds = creds
-    return _cached_creds
+    return _cached_creds
