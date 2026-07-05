@@ -9,7 +9,34 @@ SCOPES = [
     "https://www.googleapis.com/auth/gmail.compose"
 ]
 
+_cached_creds = None
+
+
 def get_creds():
+    global _cached_creds
+
+    # If credentials are already cached and still valid, return them directly
+    if _cached_creds and _cached_creds.valid:
+        return _cached_creds
+
+    is_deployed = bool(
+        os.environ.get("RENDER")
+        or os.environ.get("RAILWAY_ENVIRONMENT")
+        or os.environ.get("IS_DEPLOYED")
+    )
+
+    # If cached credentials exist but are expired, refresh them directly
+    if _cached_creds and _cached_creds.expired and _cached_creds.refresh_token:
+        try:
+            _cached_creds.refresh(Request())
+            if not is_deployed:
+                with open("token.json", "w") as token:
+                    token.write(_cached_creds.to_json())
+            return _cached_creds
+        except Exception:
+            # If refresh fails, fall back to reloading/re-authenticating
+            _cached_creds = None
+
     creds = None
     
     # 1. Load from Environment Variable (for Render)
@@ -19,12 +46,6 @@ def get_creds():
     # 2. Fallback to local file
     elif os.path.exists("token.json"):
         creds = Credentials.from_authorized_user_file("token.json", SCOPES)
-
-    is_deployed = bool(
-        os.environ.get("RENDER")
-        or os.environ.get("RAILWAY_ENVIRONMENT")
-        or os.environ.get("IS_DEPLOYED")
-    )
 
     # 3. Refresh or Fail (No interactive login in cloud)
     if not creds or not creds.valid:
@@ -43,4 +64,5 @@ def get_creds():
             with open("token.json", "w") as token:
                 token.write(creds.to_json())
                 
-    return creds
+    _cached_creds = creds
+    return _cached_creds
